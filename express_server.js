@@ -41,6 +41,12 @@ app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
+
+/**
+ * READ
+ */
+
+//INDEX (ALL URLS)
 //we need to pass along the urlDatabase to the template urls_index
 //2 arg: EJS path, template
 app.get('/urls', (req, res) => {
@@ -74,7 +80,7 @@ app.post('/urls', (req, res) => {
   
 });
 
-
+//SHOW (INDIVIDUAL URL)
 app.get('/urls/:id', (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render('urls_show', templateVars);
@@ -90,6 +96,20 @@ app.get('/u/:id', (req, res) => {
   res.redirect(longURL);
 });
 
+/**
+ * UPDATE
+ */
+
+//edit route will need to use route to identify which shortened url we need to edit
+app.post('/urls/:id/', (req, res) => {
+  const editLongURL = req.body.type;
+  //console.log('req body:', req.body) // { type: 'http://www.lighthouselabs.com.br' }
+
+  //update long url in  database
+  urlDatabase[req.params.id] = editLongURL;
+
+  res.redirect('/urls');
+});
 
 /**
  * DELETE
@@ -98,7 +118,7 @@ app.get('/u/:id', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   const urlID = req.params.id;
 
-  //remover url from database object
+  //remove url from database object
   delete urlDatabase[urlID];
 
   // redirect to urls_index ('/urls'), otherwise it will keep loading and nothing seems to happen
