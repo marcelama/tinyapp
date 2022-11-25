@@ -28,7 +28,10 @@
         </form>
       </div>
     <%} else {%>
-      <div class="input-group-text" id="loggedInMsg" >Logged in as: <%= username %>
+      <div>
+        <form method="POST" action="/logout">
+          Logged in as: <%= username %>
+          <input type="submit" value="Logout">
       </div>
      <%} %>
   </nav>

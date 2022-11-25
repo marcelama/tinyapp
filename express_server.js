@@ -141,13 +141,25 @@ app.post('/urls/:id/delete', (req, res) => {
 
 
 /**
- * COOKIE
+ * COOKIE / LOGIN
  */
 
 app.post('/login', (req, res) => { 
   //console.log('req body:', req.body); // { username: 'mamarcela' }
 
   res.cookie('username', req.body.username);
+
+  res.redirect('/urls');
+});
+
+/**
+ * COOKIE / LOGOUT
+ */
+
+ app.post('/logout', (req, res) => { 
+  //console.log('req body:', req.body); // { username: 'mamarcela' }
+
+  res.clearCookie('username', req.body.username);
 
   res.redirect('/urls');
 });
