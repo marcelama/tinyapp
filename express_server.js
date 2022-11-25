@@ -44,16 +44,33 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-//routes should be ordered from most specific to least specific, new comes before :id
+/**
+ * CREATE
+ */
+
+//NEW FORM SHOW - routes should be ordered from most specific to least specific, new comes before :id
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
 });
 
-//POST Route to Receive the Form Submission:
-app.post('/urls', (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send('Ok'); // Respond with 'Ok' (we will replace this)
+//NEW URL FORM SUBMISSION - POST Route to Receive the Form Submission:
+app.post("/urls", (req, res) => {
+  // console.log(req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
+  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const longURL = req.body.longURL;
+
+  const newShortURL = generateRandomString();
+  //console.log(newShortURL);
+
+   // Add new url to DB with generated random string
+   urlDatabase[newShortURL] = longURL;
+
+   // Use route to view the new url you made!
+   res.redirect(`/urls/${newShortURL}`);
+  
 });
+
+
 
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
