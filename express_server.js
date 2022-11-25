@@ -8,6 +8,11 @@ const generateRandomString = function() {
   return Math.random().toString(36).substr(2, 6);
 };
 
+////////////////////////////////////////////////////////////////
+////Database
+////////////////////////////////////////////////////////////////
+
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -19,7 +24,6 @@ const urlDatabase = {
 
 //body-parser middleware (Must come before the route, as  will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body)
 app.use(express.urlencoded({ extended: true }));
-
 
 
 ////////////////////////////////////////////////////////////////
@@ -54,7 +58,7 @@ app.get('/urls/new', (req, res) => {
 });
 
 //NEW URL FORM SUBMISSION - POST Route to Receive the Form Submission:
-app.post("/urls", (req, res) => {
+app.post('/urls', (req, res) => {
   // console.log(req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
   // res.send("Ok"); // Respond with 'Ok' (we will replace this)
   const longURL = req.body.longURL;
@@ -71,19 +75,36 @@ app.post("/urls", (req, res) => {
 });
 
 
-app.get("/urls/:id", (req, res) => {
+app.get('/urls/:id', (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render('urls_show', templateVars);
 });
 
+
 // Redirect Short URLs to long URLs:
-app.get("/u/:id", (req, res) => {
+app.get('/u/:id', (req, res) => {
   
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
 
   res.redirect(longURL);
 });
+
+
+/**
+ * DELETE
+ */
+
+app.post('/urls/:id/delete', (req, res) => {
+  const urlID = req.params.id;
+
+  //remover url from database object
+  delete urlDatabase[urlID];
+
+  // redirect to urls_index ('/urls'), otherwise it will keep loading and nothing seems to happen
+  res.redirect('/urls');
+});
+
 
 
 
