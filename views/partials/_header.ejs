@@ -20,11 +20,16 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <div> 
-      <form method="POST" action="/login">
-        <input name="username" value="Username">
-      <input type="submit" value="Login">
+    <% if(username === undefined) {%>
+      <div>
+        <form method="POST" action="/login">
+          <input name="username" value="Username">
+          <input type="submit" value="Login">
         </form>
-    </div>
+      </div>
+    <%} else {%>
+      <div class="input-group-text" id="loggedInMsg" >Logged in as: <%= username %>
+      </div>
+     <%} %>
   </nav>
 </header>
