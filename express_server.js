@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = 8080; //default port 8080
@@ -25,6 +26,17 @@ const urlDatabase = {
 //body-parser middleware (Must come before the route, as  will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body)
 app.use(express.urlencoded({ extended: true }));
 
+//cookies
+app.use(cookieParser());
+
+// app.get('/', function (req, res) {
+//   // Cookies that have not been signed
+//   console.log('Cookies: ', req.cookies)
+
+//   // Cookies that have been signed
+//   console.log('Signed Cookies: ', req.signedCookies)
+// })
+
 
 ////////////////////////////////////////////////////////////////
 ////Routes
@@ -48,7 +60,7 @@ app.get('/hello', (req, res) => {
 
 //INDEX (ALL URLS)
 //we need to pass along the urlDatabase to the template urls_index
-//2 arg: EJS path, template
+//res 2 arg: EJS path, template
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
@@ -126,7 +138,17 @@ app.post('/urls/:id/delete', (req, res) => {
 });
 
 
+/**
+ * COOKIE
+ */
 
+app.post('/login', (req, res) => { 
+  //console.log('req body:', req.body); // { username: 'mamarcela' }
+
+  res.cookie('username', req.body.username);
+
+  res.redirect('/urls');
+});
 
 ////////////////////////////////////////////////////////////////
 ////Server Listening...
