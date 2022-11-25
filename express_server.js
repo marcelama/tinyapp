@@ -4,8 +4,8 @@ const app = express();
 const PORT = 8080; //default port 8080
 app.set('view engine', 'ejs');
 
-const generateRandomString = function(){
-  return Math.random().toString(36).substr(2, 6)
+const generateRandomString = function() {
+  return Math.random().toString(36).substr(2, 6);
 };
 
 const urlDatabase = {
@@ -62,11 +62,11 @@ app.post("/urls", (req, res) => {
   const newShortURL = generateRandomString();
   //console.log(newShortURL);
 
-   // Add new url to DB with generated random string
-   urlDatabase[newShortURL] = longURL;
+  // Add new url to DB with generated random string
+  urlDatabase[newShortURL] = longURL;
 
-   // Use route to view the new url you made!
-   res.redirect(`/urls/${newShortURL}`);
+  // Use route to view the new url you made!
+  res.redirect(`/urls/${newShortURL}`);
   
 });
 
