@@ -19,6 +19,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 ////////////////////////////////////////////////////////////////
 ////Middleware
 ////////////////////////////////////////////////////////////////
@@ -33,6 +46,13 @@ app.use(cookieParser());
 ////////////////////////////////////////////////////////////////
 ////Routes
 ////////////////////////////////////////////////////////////////
+
+
+/**
+ * READ
+ */
+
+
 app.get('/', (req, res) => {
   res.send('Hello');
 });
@@ -45,10 +65,6 @@ app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
-
-/**
- * READ
- */
 
 //INDEX (ALL URLS)
 //we need to pass along the urlDatabase to the template urls_index
@@ -88,6 +104,16 @@ app.post('/urls', (req, res) => {
   // Use route to view the new url you made!
   res.redirect(`/urls/${newShortURL}`);
   
+});
+
+//REGISTER
+app.get('/register', (req, res) => {
+  const templateVars = { 
+    username: req.cookies["username"],
+    // email: 'email',
+    // password: 'password'
+  };
+  res.render('urls_register', templateVars);
 });
 
 //SHOW (INDIVIDUAL URL)
@@ -171,4 +197,3 @@ app.post('/login', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
-
