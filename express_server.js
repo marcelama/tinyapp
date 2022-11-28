@@ -65,13 +65,20 @@ app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
+//REGISTER
+app.get('/register', (req, res) => {
+  const templateVars = { 
+    user: users[req.cookies['user_id']],
+  };
+  res.render('urls_register', templateVars);
+});
 
 //INDEX (ALL URLS)
 //we need to pass along the urlDatabase to the template urls_index
 //res 2 arg: EJS path, template
 app.get('/urls', (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    user: users[req.cookies['user_id']],
     urls: urlDatabase
   };
   res.render('urls_index', templateVars);
@@ -84,7 +91,7 @@ app.get('/urls', (req, res) => {
 //NEW FORM SHOW - routes should be ordered from most specific to least specific, new comes before :id
 app.get('/urls/new', (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"]
+    user: users[req.cookies['user_id']],
   };
   res.render('urls_new', templateVars);
 });
@@ -106,20 +113,28 @@ app.post('/urls', (req, res) => {
   
 });
 
-//REGISTER
-app.get('/register', (req, res) => {
-  const templateVars = { 
-    username: req.cookies["username"],
-    // email: 'email',
-    // password: 'password'
-  };
-  res.render('urls_register', templateVars);
+
+//NEW REGISTRATION - POST Route to Receive the Registration Form
+app.post('/register', (req, res) => {
+  //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = {id, email, password};
+    // add new user to user object
+  users[id] = user;
+
+  // console.log(users); //confirm new user was added to users object
+  // add new user id cookie
+  res.cookie('user_id', id);
+  
+  res.redirect('/urls');
 });
 
 //SHOW (INDIVIDUAL URL)
 app.get('/urls/:id', (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies['user_id']],
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
@@ -185,10 +200,11 @@ app.post('/login', (req, res) => {
  app.post('/logout', (req, res) => { 
   //console.log('req body:', req.body); // { username: 'mamarcela' }
 
-  res.clearCookie('username', req.body.username);
+  res.clearCookie('user_id', req.body.id);
 
   res.redirect('/urls');
 });
+
 
 ////////////////////////////////////////////////////////////////
 ////Server Listening...
