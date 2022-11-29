@@ -9,6 +9,16 @@ const generateRandomString = function() {
   return Math.random().toString(36).substr(2, 6);
 };
 
+// check if the email submitted already exists
+const checkEmailExists = function(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      console.log(users[user][email]);
+      return true;
+    }
+  }
+  return false;
+};
 ////////////////////////////////////////////////////////////////
 ////Database
 ////////////////////////////////////////////////////////////////
@@ -116,7 +126,15 @@ app.post('/urls', (req, res) => {
 
 //NEW REGISTRATION - POST Route to Receive the Registration Form
 app.post('/register', (req, res) => {
+  const newEmail = req.body.email;
   //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
+  if (req.body.email === '' || req.body.password === '') {
+    res.status(400);
+    res.send('Valid mail and password required');
+  } else if (checkEmailExists(newEmail) === true) {
+    res.status(400);
+    res.send('Email already exists, please login instead') 
+  } else {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
@@ -124,11 +142,13 @@ app.post('/register', (req, res) => {
     // add new user to user object
   users[id] = user;
 
-  // console.log(users); //confirm new user was added to users object
+  
   // add new user id cookie
   res.cookie('user_id', id);
   
   res.redirect('/urls');
+  }
+  console.log(users); //confirm new user was added to users object
 });
 
 //SHOW (INDIVIDUAL URL)
