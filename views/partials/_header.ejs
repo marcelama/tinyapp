@@ -21,18 +21,19 @@
       </div>
     </div>
     <% if(!user) {%>
-      <div>
-        <form method="POST" action="/login">
-          <input name="username" value="username">
-          <input type="submit" value="Login">
-        </form>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" href="/login">Login</a>
+          <a class="nav-item nav-link" href="/register">Register</a>
+        </div>
       </div>
     <%} else {%>
-      <div>
-        <form method="POST" action="/logout">
-          Logged in as: <%= user.email %>
+      <form method="POST" action="/logout" class="form-inline">
+        <div class="form-group form-inline">
+          <label>Logged in as: <%= user.email %></label>
           <input type="submit" value="Logout">
-      </div>
+        </div>
+      </form>
      <%} %>
   </nav>
 </header>

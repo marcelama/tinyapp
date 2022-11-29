@@ -13,8 +13,8 @@ const generateRandomString = function() {
 const checkEmailExists = function(email) {
   for (const user in users) {
     if (users[user].email === email) {
-      console.log(users[user][email]);
-      return true;
+      //console.log(users[user].id);
+      return users[user].id;
     }
   }
   return false;
@@ -83,6 +83,45 @@ app.get('/register', (req, res) => {
   res.render('urls_register', templateVars);
 });
 
+
+/**
+ * LOGIN
+ */
+
+ app.post('/login', (req, res) => { 
+ // console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
+
+  const email = req.body.email;
+  // const password = req.body.password;
+  const userID = checkEmailExists(email);
+  res.cookie('user_id', userID)
+
+  res.redirect('/urls');
+});
+
+
+app.get('/login', (req, res) => {
+  console.log()
+  const templateVars = { 
+    user: users[req.cookies['user_id']],
+  };
+  res.render('urls_login', templateVars);
+});
+
+
+/**
+ * LOGOUT
+ */
+
+ app.post('/logout', (req, res) => { 
+  //console.log('req body:', req.body); // { username: 'mamarcela' }
+
+  res.clearCookie('user_id', req.body.id);
+
+  res.redirect('/urls');
+});
+
+
 //INDEX (ALL URLS)
 //we need to pass along the urlDatabase to the template urls_index
 //res 2 arg: EJS path, template
@@ -131,7 +170,7 @@ app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
     res.status(400);
     res.send('Valid mail and password required');
-  } else if (checkEmailExists(newEmail) === true) {
+  } else if (checkEmailExists(newEmail)) {
     res.status(400);
     res.send('Email already exists, please login instead') 
   } else {
@@ -148,7 +187,7 @@ app.post('/register', (req, res) => {
   
   res.redirect('/urls');
   }
-  console.log(users); //confirm new user was added to users object
+  //console.log(users); //confirm new user was added to users object
 });
 
 //SHOW (INDIVIDUAL URL)
@@ -201,29 +240,7 @@ app.post('/urls/:id/delete', (req, res) => {
 });
 
 
-/**
- * COOKIE / LOGIN
- */
 
-app.post('/login', (req, res) => { 
-  //console.log('req body:', req.body); // { username: 'mamarcela' }
-
-  res.cookie('username', req.body.username);
-
-  res.redirect('/urls');
-});
-
-/**
- * COOKIE / LOGOUT
- */
-
- app.post('/logout', (req, res) => { 
-  //console.log('req body:', req.body); // { username: 'mamarcela' }
-
-  res.clearCookie('user_id', req.body.id);
-
-  res.redirect('/urls');
-});
 
 
 ////////////////////////////////////////////////////////////////
