@@ -3,6 +3,8 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = 8080; //default port 8080
+
+//configure view engine
 app.set('view engine', 'ejs');
 
 ////////////////////////////////////////////////////////////////
@@ -15,10 +17,13 @@ const generateRandomString = function() {
 
 // check if the email submitted already exists
 const checkEmailExists = function(email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      //console.log(users[user].id);
-      return users[user].id;
+  let foundUser = null;
+  for (const userId in users) {
+    const user = users[userId];
+    if (user.email === email) {
+      foundUser = user;
+      //console.log(foundUser) // { id: 'user2RandomID', email: 'user2@example.com', password: 'dishwasher-funk'}
+      return foundUser;
     }
   }
   return false;
@@ -37,12 +42,12 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: "funky1",
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: "funky2",
   },
 };
 
@@ -104,7 +109,7 @@ app.post('/register', (req, res) => {
   
   res.redirect('/urls');
   }
-  //console.log(users); //confirm new user was added to users object
+  console.log(users); //confirm new user was added to users object
 });
 
 //REGISTER - GET 
@@ -125,16 +130,16 @@ app.get('/register', (req, res) => {
 
   const email = req.body.email;
   const password = req.body.password;
-  const userID = checkEmailExists(email);
+  const foundUser = checkEmailExists(email);
 
-  if (!checkEmailExists(email)) {
+  if (!foundUser.id) {
     res.status(403);
     res.send('Email cannot be found. Please register.');
-  } else if (users[userID].password !== password) {
+  } else if (foundUser.password !== password) {
       res.status(403);
       res.send('Password does not match with the email addess provided.');
     } else {
-  res.cookie('user_id', userID);
+  res.cookie('user_id', foundUser.id);
   res.redirect('/urls');
   }
 });
