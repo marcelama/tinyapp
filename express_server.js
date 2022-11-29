@@ -5,6 +5,10 @@ const app = express();
 const PORT = 8080; //default port 8080
 app.set('view engine', 'ejs');
 
+////////////////////////////////////////////////////////////////
+////Helpers functions
+////////////////////////////////////////////////////////////////
+
 const generateRandomString = function() {
   return Math.random().toString(36).substr(2, 6);
 };
@@ -75,7 +79,35 @@ app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
-//REGISTER
+
+/**
+ * REGISTER - POST Route to Receive the Registration Form
+ */
+app.post('/register', (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
+  if (req.body.email === '' || req.body.password === '') {
+    res.status(400);
+    res.send('Valid mail and password required');
+  } else if (checkEmailExists(email)) {
+    res.status(400);
+    res.send('Cannot register with an email address that has already been used.') 
+  } else {
+  const user = {id, email, password};
+    // add new user to user object
+  users[id] = user;
+
+  // add new user id cookie
+  res.cookie('user_id', id);
+  
+  res.redirect('/urls');
+  }
+  //console.log(users); //confirm new user was added to users object
+});
+
+//REGISTER - GET 
 app.get('/register', (req, res) => {
   const templateVars = { 
     user: users[req.cookies['user_id']],
@@ -85,21 +117,29 @@ app.get('/register', (req, res) => {
 
 
 /**
- * LOGIN
+ * LOGIN - POST
  */
 
  app.post('/login', (req, res) => { 
  // console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
 
   const email = req.body.email;
-  // const password = req.body.password;
+  const password = req.body.password;
   const userID = checkEmailExists(email);
-  res.cookie('user_id', userID)
 
+  if (!checkEmailExists(email)) {
+    res.status(403);
+    res.send('Email cannot be found. Please register.');
+  } else if (users[userID].password !== password) {
+      res.status(403);
+      res.send('Password does not match with the email addess provided.');
+    } else {
+  res.cookie('user_id', userID);
   res.redirect('/urls');
+  }
 });
 
-
+// LOGIN - GET
 app.get('/login', (req, res) => {
   console.log()
   const templateVars = { 
@@ -114,11 +154,11 @@ app.get('/login', (req, res) => {
  */
 
  app.post('/logout', (req, res) => { 
-  //console.log('req body:', req.body); // { username: 'mamarcela' }
+  //console.log('req body:', req.body); 
 
-  res.clearCookie('user_id', req.body.id);
+  res.clearCookie('user_id');
 
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 
@@ -163,32 +203,6 @@ app.post('/urls', (req, res) => {
 });
 
 
-//NEW REGISTRATION - POST Route to Receive the Registration Form
-app.post('/register', (req, res) => {
-  const newEmail = req.body.email;
-  //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
-  if (req.body.email === '' || req.body.password === '') {
-    res.status(400);
-    res.send('Valid mail and password required');
-  } else if (checkEmailExists(newEmail)) {
-    res.status(400);
-    res.send('Email already exists, please login instead') 
-  } else {
-  const id = generateRandomString();
-  const email = req.body.email;
-  const password = req.body.password;
-  const user = {id, email, password};
-    // add new user to user object
-  users[id] = user;
-
-  
-  // add new user id cookie
-  res.cookie('user_id', id);
-  
-  res.redirect('/urls');
-  }
-  //console.log(users); //confirm new user was added to users object
-});
 
 //SHOW (INDIVIDUAL URL)
 app.get('/urls/:id', (req, res) => {
