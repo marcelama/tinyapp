@@ -213,7 +213,13 @@ app.get('/urls/new', (req, res) => {
 //NEW URL FORM SUBMISSION - POST Route to Receive the Form Submission:
 app.post('/urls', (req, res) => {
   // console.log(req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
-  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  // retrieve the user's cookie
+  const userId = req.cookies['user_id'];
+   // check if the user is logged in
+  if (!userId) {
+   return res.send("Only logged in users can shorten URLs. Please Login or Register.");
+  }
+  
   const longURL = req.body.longURL;
 
   const newShortURL = generateRandomString();
