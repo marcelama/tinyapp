@@ -28,14 +28,31 @@ const checkEmailExists = function(email) {
   }
   return false;
 };
+
+//returns the URLs where the userID is equal to the id of the currently logged-in user
+const urlsForUser = function(id, urlDatabase) {
+  const userURLs = {};
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      userURLs[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userURLs;
+}
 ////////////////////////////////////////////////////////////////
 ////Database
 ////////////////////////////////////////////////////////////////
 
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b2xVn2: {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "userRandomID"
+  },
+  sm5xK9: {
+    longURL: "http://www.google.com",
+    userID: "user2RandomID"
+  },
 };
 
 const users = {
@@ -185,9 +202,16 @@ app.get('/login', (req, res) => {
 //we need to pass along the urlDatabase to the template urls_index
 //res 2 arg: EJS path, template
 app.get('/urls', (req, res) => {
+    // retrieve the user's cookie
+    const userId = req.cookies['user_id'];
+    //console.log(userId); //userRandomID
+    // check if the user is logged in
+   if (!userId) {
+    return res.status(401).send("Access denied. Please Login or Register.");
+   }
   const templateVars = { 
-    user: users[req.cookies['user_id']],
-    urls: urlDatabase
+    user: users[userId],
+    urls: urlsForUser(userId, urlDatabase)
   };
   res.render('urls_index', templateVars);
 });
@@ -212,21 +236,26 @@ app.get('/urls/new', (req, res) => {
 
 //NEW URL FORM SUBMISSION - POST Route to Receive the Form Submission:
 app.post('/urls', (req, res) => {
-  // console.log(req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
+  //console.log('req.body: ', req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
   // retrieve the user's cookie
   const userId = req.cookies['user_id'];
    // check if the user is logged in
   if (!userId) {
-   return res.send("Only logged in users can shorten URLs. Please Login or Register.");
+   return res.status(401).send("Only logged in users can shorten URLs. Please Login or Register.");
   }
-  
-  const longURL = req.body.longURL;
+
+  const newLongURL = req.body.longURL;
+  //console.log('newLongURL: ', newLongURL);
 
   const newShortURL = generateRandomString();
-  //console.log(newShortURL);
+  //console.log('newShortURL: ', newShortURL);
 
   // Add new url to DB with generated random string
-  urlDatabase[newShortURL] = longURL;
+  urlDatabase[newShortURL] = {
+    longURL: newLongURL,
+    userID: userId
+  }
+ console.log('urlDatabase: ', urlDatabase);
 
   // Use route to view the new url you made!
   res.redirect(`/urls/${newShortURL}`);
@@ -237,10 +266,20 @@ app.post('/urls', (req, res) => {
 
 //SHOW (INDIVIDUAL URL)
 app.get('/urls/:id', (req, res) => {
+    // retrieve the user's cookie
+    const userId = req.cookies['user_id'];
+    const id = req.params.id;
+    // check if the user is logged in
+    if (!userId) {
+    return res.status(401).send("Access denied. Please Login or Register.");
+    } if (userId !== urlDatabase[id].id) {
+      return res.status(401).send("Access denied. This URL belongs to another user.");
+    }
+    
   const templateVars = {
-    user: users[req.cookies['user_id']],
+    user: users[userId],
     id: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    longURL: urlDatabase[req.params.id].longURL
   };
   res.render('urls_show', templateVars);
 });
@@ -248,9 +287,11 @@ app.get('/urls/:id', (req, res) => {
 
 // Redirect Short URLs to long URLs:
 app.get('/u/:id', (req, res) => {
-  
+  if (!urlDatabase[req.params.id]) {
+    return res.status(404).send('No url with provided id in our database')
+  }
   const shortURL = req.params.id;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
 
   res.redirect(longURL);
 });
@@ -261,11 +302,13 @@ app.get('/u/:id', (req, res) => {
 
 //edit route will need to use route to identify which shortened url we need to edit
 app.post('/urls/:id/', (req, res) => {
+
   const editLongURL = req.body.type;
   //console.log('req body:', req.body) // { type: 'http://www.lighthouselabs.com.br' }
 
   //update long url in  database
-  urlDatabase[req.params.id] = editLongURL;
+  urlDatabase[req.params.id].longURL = editLongURL;
+  console.log(urlDatabase);
 
   res.redirect('/urls');
 });
