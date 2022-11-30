@@ -51,6 +51,7 @@ const users = {
   },
 };
 
+
 ////////////////////////////////////////////////////////////////
 ////Middleware
 ////////////////////////////////////////////////////////////////
@@ -90,6 +91,7 @@ app.get('/hello', (req, res) => {
  */
 app.post('/register', (req, res) => {
   const id = generateRandomString();
+  // pull the email and password off the body object
   const email = req.body.email;
   const password = req.body.password;
   //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
@@ -100,8 +102,9 @@ app.post('/register', (req, res) => {
     res.status(400);
     res.send('Cannot register with an email address that has already been used.') 
   } else {
+  // create a new user object
   const user = {id, email, password};
-    // add new user to user object
+  // add new user to user object
   users[id] = user;
 
   // add new user id cookie
@@ -109,13 +112,19 @@ app.post('/register', (req, res) => {
   
   res.redirect('/urls');
   }
-  console.log(users); //confirm new user was added to users object
+  //console.log(users); //confirm new user was added to users object
 });
 
 //REGISTER - GET 
 app.get('/register', (req, res) => {
+  // retrieve the user's cookie
+  const userId = req.cookies['user_id'];
+  // check if the user is logged in
+  if (userId) {
+  return res.redirect('/urls');
+  }
   const templateVars = { 
-    user: users[req.cookies['user_id']],
+    user: users[userId],
   };
   res.render('urls_register', templateVars);
 });
@@ -139,6 +148,7 @@ app.get('/register', (req, res) => {
       res.status(403);
       res.send('Password does not match with the email addess provided.');
     } else {
+  // set the cookie
   res.cookie('user_id', foundUser.id);
   res.redirect('/urls');
   }
@@ -146,13 +156,17 @@ app.get('/register', (req, res) => {
 
 // LOGIN - GET
 app.get('/login', (req, res) => {
-  console.log()
+  // retrieve the user's cookie
+  const userId = req.cookies['user_id'];
+   // check if the user is logged in
+  if (userId) {
+   return res.redirect('/urls');
+  }
   const templateVars = { 
-    user: users[req.cookies['user_id']],
+    user: users[userId]
   };
   res.render('urls_login', templateVars);
 });
-
 
 /**
  * LOGOUT
@@ -184,6 +198,12 @@ app.get('/urls', (req, res) => {
 
 //NEW FORM SHOW - routes should be ordered from most specific to least specific, new comes before :id
 app.get('/urls/new', (req, res) => {
+  // retrieve the user's cookie
+  const userId = req.cookies['user_id'];
+   // check if the user is logged in
+  if (!userId) {
+   return res.redirect('/login');
+  }
   const templateVars = { 
     user: users[req.cookies['user_id']],
   };
