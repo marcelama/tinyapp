@@ -3,6 +3,8 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
 
+const { getUserByEmail } = require('./helpers');
+
 const app = express();
 const PORT = 8080; //default port 8080
 
@@ -17,19 +19,7 @@ const generateRandomString = function() {
   return Math.random().toString(36).substr(2, 6);
 };
 
-// check if the email submitted already exists
-const checkEmailExists = function(email) {
-  let foundUser = null;
-  for (const userId in users) {
-    const user = users[userId];
-    if (user.email === email) {
-      foundUser = user;
-      //console.log(foundUser) // { id: 'user2RandomID', email: 'user2@example.com', password: 'dishwasher-funk'}
-      return foundUser;
-    }
-  }
-  return false;
-};
+
 
 //returns the URLs where the userID is equal to the id of the currently logged-in user
 const urlsForUser = function(id, urlDatabase) {
@@ -117,12 +107,12 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  console.log('hashedPassword', hashedPassword);
+  //console.log('hashedPassword', hashedPassword);
   //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
   if (req.body.email === '' || req.body.password === '') {
     res.status(400);
     res.send('Valid mail and password required');
-  } else if (checkEmailExists(email)) {
+  } else if (getUserByEmail(email, users)) {
     res.status(400);
     res.send('Cannot register with an email address that has already been used.') 
   } else {
@@ -163,11 +153,11 @@ app.get('/register', (req, res) => {
  */
 
  app.post('/login', (req, res) => { 
-console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
+//console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
 
   const email = req.body.email;
   const password = req.body.password;
-  const foundUser = checkEmailExists(email);
+  const foundUser = getUserByEmail(email, users);
 
   if (!foundUser.id) {
     res.status(403);
