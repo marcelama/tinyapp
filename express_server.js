@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
+const cookieSession = require('cookie-session');
 
 const app = express();
 const PORT = 8080; //default port 8080
@@ -77,10 +78,13 @@ const users = {
 //body-parser middleware (Must come before the route, as  will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body)
 app.use(express.urlencoded({ extended: true }));
 
-//cookies
-app.use(cookieParser());
-
-
+//cookie session
+app.use(cookieSession({
+  name: 'session',
+  keys: ['umsegredosecreto'],
+  // cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // expiry 24 hours
+}))
 ////////////////////////////////////////////////////////////////
 ////Routes
 ////////////////////////////////////////////////////////////////
@@ -132,7 +136,7 @@ app.post('/register', (req, res) => {
   users[id] = user;
 
   // add new user id cookie
-  res.cookie('user_id', id);
+  req.session.user_id = id;
   
   res.redirect('/urls');
   }
@@ -142,7 +146,7 @@ app.post('/register', (req, res) => {
 //REGISTER - GET 
 app.get('/register', (req, res) => {
   // retrieve the user's cookie
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
   // check if the user is logged in
   if (userId) {
   return res.redirect('/urls');
@@ -173,7 +177,7 @@ console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', p
       res.send('Password does not match with the email addess provided.');
     } else {
   // set the cookie
-  res.cookie('user_id', foundUser.id);
+  req.session.user_id = foundUser.id;
   res.redirect('/urls');
   }
 });
@@ -181,7 +185,7 @@ console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', p
 // LOGIN - GET
 app.get('/login', (req, res) => {
   // retrieve the user's cookie
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
    // check if the user is logged in
   if (userId) {
    return res.redirect('/urls');
@@ -199,7 +203,7 @@ app.get('/login', (req, res) => {
  app.post('/logout', (req, res) => { 
   //console.log('req body:', req.body); 
 
-  res.clearCookie('user_id');
+  req.session = null;
 
   res.redirect('/login');
 });
@@ -210,7 +214,7 @@ app.get('/login', (req, res) => {
 //res 2 arg: EJS path, template
 app.get('/urls', (req, res) => {
     // retrieve the user's cookie
-    const userId = req.cookies['user_id'];
+    const userId = req.session.user_id;
     //console.log(userId); //userRandomID
     // check if the user is logged in
    if (!userId) {
@@ -230,13 +234,13 @@ app.get('/urls', (req, res) => {
 //NEW FORM SHOW - routes should be ordered from most specific to least specific, new comes before :id
 app.get('/urls/new', (req, res) => {
   // retrieve the user's cookie
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
    // check if the user is logged in
   if (!userId) {
    return res.redirect('/login');
   }
   const templateVars = { 
-    user: users[req.cookies['user_id']],
+    user: users[userId],
   };
   res.render('urls_new', templateVars);
 });
@@ -245,7 +249,7 @@ app.get('/urls/new', (req, res) => {
 app.post('/urls', (req, res) => {
   //console.log('req.body: ', req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
   // retrieve the user's cookie
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
    // check if the user is logged in
   if (!userId) {
    return res.status(401).send("Only logged in users can shorten URLs. Please Login or Register.");
@@ -274,7 +278,7 @@ app.post('/urls', (req, res) => {
 //SHOW (INDIVIDUAL URL)
 app.get('/urls/:id', (req, res) => {
     // retrieve the user's cookie
-    const userId = req.cookies['user_id'];
+    const userId = req.session.user_id;
     const shortURL = req.params.id;
     // check if id exists
     if (!urlDatabase[shortURL]) {
@@ -312,7 +316,7 @@ app.get('/u/:id', (req, res) => {
 
 //edit route will need to use route to identify which shortened url we need to edit
 app.post('/urls/:id/', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
   const userURLs = urlsForUser(userId, urlDatabase);
   const shortURL = req.params.id;
 
@@ -343,7 +347,7 @@ app.post('/urls/:id/', (req, res) => {
  */
 
 app.post('/urls/:id/delete', (req, res) => {
-  const userId = req.cookies['user_id'];
+  const userId = req.session.user_id;
   const userURLs = urlsForUser(userId, urlDatabase);
   const shortURL = req.params.id;
 
