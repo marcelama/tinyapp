@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 8080; //default port 8080
@@ -111,6 +112,8 @@ app.post('/register', (req, res) => {
   // pull the email and password off the body object
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  console.log('hashedPassword', hashedPassword);
   //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
   if (req.body.email === '' || req.body.password === '') {
     res.status(400);
@@ -120,7 +123,11 @@ app.post('/register', (req, res) => {
     res.send('Cannot register with an email address that has already been used.') 
   } else {
   // create a new user object
-  const user = {id, email, password};
+  const user = {
+    id,
+    email,
+    password: hashedPassword
+  };
   // add new user to user object
   users[id] = user;
 
@@ -129,7 +136,7 @@ app.post('/register', (req, res) => {
   
   res.redirect('/urls');
   }
-  //console.log(users); //confirm new user was added to users object
+  console.log(users); //confirm new user was added to users object
 });
 
 //REGISTER - GET 
@@ -152,7 +159,7 @@ app.get('/register', (req, res) => {
  */
 
  app.post('/login', (req, res) => { 
- // console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
+console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
 
   const email = req.body.email;
   const password = req.body.password;
@@ -161,7 +168,7 @@ app.get('/register', (req, res) => {
   if (!foundUser.id) {
     res.status(403);
     res.send('Email cannot be found. Please register.');
-  } else if (foundUser.password !== password) {
+  } else if (!bcrypt.compareSync(password, foundUser.password)) {
       res.status(403);
       res.send('Password does not match with the email addess provided.');
     } else {
