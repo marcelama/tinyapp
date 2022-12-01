@@ -268,11 +268,14 @@ app.post('/urls', (req, res) => {
 app.get('/urls/:id', (req, res) => {
     // retrieve the user's cookie
     const userId = req.cookies['user_id'];
-    const id = req.params.id;
-    // check if the user is logged in
+    const shortURL = req.params.id;
+    // check if id exists
+    if (!urlDatabase[shortURL]) {
+      return res.status(404).send('No url with provided id in our database.');
+    } // check if the user is logged in
     if (!userId) {
     return res.status(401).send("Access denied. Please Login or Register.");
-    } if (userId !== urlDatabase[id].id) {
+    } if (userId !== urlDatabase[shortURL].userID) {
       return res.status(401).send("Access denied. This URL belongs to another user.");
     }
     
@@ -288,7 +291,7 @@ app.get('/urls/:id', (req, res) => {
 // Redirect Short URLs to long URLs:
 app.get('/u/:id', (req, res) => {
   if (!urlDatabase[req.params.id]) {
-    return res.status(404).send('No url with provided id in our database')
+    return res.status(404).send('No url with provided id in our database.')
   }
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
@@ -302,15 +305,30 @@ app.get('/u/:id', (req, res) => {
 
 //edit route will need to use route to identify which shortened url we need to edit
 app.post('/urls/:id/', (req, res) => {
+  const userId = req.cookies['user_id'];
+  const userURLs = urlsForUser(userId, urlDatabase);
+  const shortURL = req.params.id;
 
-  const editLongURL = req.body.type;
-  //console.log('req body:', req.body) // { type: 'http://www.lighthouselabs.com.br' }
+    //if id does not exist
+  if (!urlDatabase[shortURL]) {
+    return res.status(404).send('No url with provided id in our database.');
 
-  //update long url in  database
-  urlDatabase[req.params.id].longURL = editLongURL;
-  console.log(urlDatabase);
+  //if the user is not logged in
+  } if (!userId) {
+    return res.status(401).send("Access denied. Please Login or Register.");
 
-  res.redirect('/urls');
+  //if the user does not own the URL
+  } if (!Object.keys(userURLs).includes(shortURL)) {
+    return res.status(401).send("Access denied. This URL belongs to another user.");
+
+  } else {
+    const editLongURL = req.body.type;
+
+    //update long url in  database
+    urlDatabase[req.params.id].longURL = editLongURL;
+
+    return res.redirect('/urls');
+  }
 });
 
 /**
@@ -318,13 +336,31 @@ app.post('/urls/:id/', (req, res) => {
  */
 
 app.post('/urls/:id/delete', (req, res) => {
+  const userId = req.cookies['user_id'];
+  const userURLs = urlsForUser(userId, urlDatabase);
+  const shortURL = req.params.id;
+
+    //if id does not exist
+  if (!urlDatabase[shortURL]) {
+    return res.status(404).send('No url with provided id in our database.');
+
+  //if the user is not logged in
+  } if (!userId) {
+    return res.status(401).send("Access denied. Please Login or Register.");
+
+  //if the user does not own the URL
+  } if (!Object.keys(userURLs).includes(shortURL)) {
+    return res.status(401).send("Access denied. This URL belongs to another user.");
+
+  } else {
   const urlID = req.params.id;
 
   //remove url from database object
   delete urlDatabase[urlID];
 
   // redirect to urls_index ('/urls'), otherwise it will keep loading and nothing seems to happen
-  res.redirect('/urls');
+  return res.redirect('/urls');
+  }
 });
 
 
