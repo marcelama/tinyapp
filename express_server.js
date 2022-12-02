@@ -62,14 +62,20 @@ app.use(cookieSession({
   name: 'session',
   keys: ['umsegredosecreto'],
   maxAge: 24 * 60 * 60 * 1000 // expiry 24 hours
-}))
+}));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GET
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get('/', (req, res) => {
-  res.send('Hello');
+  const userId = req.session.user_id;
+
+  // check if the user is logged in
+  if (userId) {
+    return res.redirect('/urls');
+  }
+  return res.redirect('/login');
 });
 
 app.get('/urls.json', (req, res) => {
@@ -88,9 +94,9 @@ app.get('/register', (req, res) => {
 
   // check if the user is logged in
   if (userId) {
-  return res.redirect('/urls');
+    return res.redirect('/urls');
   }
-  const templateVars = { 
+  const templateVars = {
     user: users[userId],
   };
   res.render('urls_register', templateVars);
@@ -101,11 +107,11 @@ app.get('/register', (req, res) => {
 app.get('/login', (req, res) => {
   // retrieve the user's cookie
   const userId = req.session.user_id;
-   // check if the user is logged in
+  // check if the user is logged in
   if (userId) {
-   return res.redirect('/urls');
+    return res.redirect('/urls');
   }
-  const templateVars = { 
+  const templateVars = {
     user: users[userId]
   };
   res.render('urls_login', templateVars);
@@ -119,10 +125,10 @@ app.get('/urls', (req, res) => {
   //console.log(userId); //userRandomID
   // check if the user is logged in
   if (!userId) {
-  return res.status(401).send("Access denied. Please Login or Register.");
+    return res.status(401).send("Access denied. Please Login or Register.");
   }
   //we need to pass along the urlDatabase to the template urls_index
-  const templateVars = { 
+  const templateVars = {
     user: users[userId],
     urls: urlsForUser(userId, urlDatabase)
   };
@@ -135,9 +141,9 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   // retrieve the user's cookie
   const userId = req.session.user_id;
-   // check if the user is logged in
+  // check if the user is logged in
   if (userId) {
-    const templateVars = { 
+    const templateVars = {
       user: users[userId],
     };
     res.render('urls_new', templateVars);
@@ -157,7 +163,7 @@ app.get('/urls/:id', (req, res) => {
     return res.status(404).send('No url with provided id in our database.');
   } // check if the user is logged in
   if (!userId) {
-  return res.status(401).send("Access denied. Please Login or Register.");
+    return res.status(401).send("Access denied. Please Login or Register.");
   } if (userId !== urlDatabase[shortURL].userId) {
     return res.status(401).send("Access denied. This URL belongs to another user.");
   }
@@ -169,13 +175,13 @@ app.get('/urls/:id', (req, res) => {
   };
 
   res.render('urls_show', templateVars);
-})
+});
 
 
 //redirect short URLs to long URLs:
 app.get('/u/:id', (req, res) => {
   if (!urlDatabase[req.params.id]) {
-    return res.status(404).send('No url with provided id in our database.')
+    return res.status(404).send('No url with provided id in our database.');
   }
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
@@ -202,29 +208,29 @@ app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
     res.status(400).send('Valid mail and password required');
   } else if (getUserByEmail(email, users)) {
-    res.status(400).send('Cannot register with an email address that has already been used.') 
+    res.status(400).send('Cannot register with an email address that has already been used.');
   } else {
   // create a new user object
-  const user = {
-    id,
-    email,
-    password: hashedPassword
-  };
-  // add new user to user object
-  users[id] = user;
+    const user = {
+      id,
+      email,
+      password: hashedPassword
+    };
+    // add new user to user object
+    users[id] = user;
 
-  // add new user id cookie
-  req.session.user_id = id;
-  //console.log('cookie id 1', req.session.user_id);///HERE 1 !!!!
+    // add new user id cookie
+    req.session.user_id = id;
+    //console.log('cookie id 1', req.session.user_id);///HERE 1 !!!!
   
-  res.redirect('/urls');
+    res.redirect('/urls');
   }
-  console.log(users); //confirm new user was added to users object
+  //console.log(users); //confirm new user was added to users object
 });
 
 
-//login 
- app.post('/login', (req, res) => { 
+//login
+app.post('/login', (req, res) => {
   //console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
 
   const email = req.body.email;
@@ -234,19 +240,19 @@ app.post('/register', (req, res) => {
   if (!foundUser) {
     res.status(404).send('Email cannot be found. Please register.');
   } else if (!bcrypt.compareSync(password, foundUser.password)) {
-      res.status(403).send('Password does not match with the email addess provided.');
-    } else {
+    res.status(403).send('Password does not match with the email addess provided.');
+  } else {
   // set the cookie
-  req.session.user_id = foundUser.id; 
-  //console.log('cookie id 2', req.session.user_id); ///HERE 2!!!!
-  res.redirect('/urls');
+    req.session.user_id = foundUser.id;
+    //console.log('cookie id 2', req.session.user_id); ///HERE 2!!!!
+    res.redirect('/urls');
   }
 });
 
 
 //logout
- app.post('/logout', (req, res) => { 
-  //console.log('req body:', req.body); 
+app.post('/logout', (req, res) => {
+  //console.log('req body:', req.body);
 
   req.session = null;
 
@@ -259,9 +265,9 @@ app.post('/urls', (req, res) => {
   //console.log('req.body: ', req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
   // retrieve the user's cookie
   const userId = req.session.user_id;
-   // check if the user is logged in
+  // check if the user is logged in
   if (!userId) {
-   return res.status(401).send("Only logged in users can shorten URLs. Please Login or Register.");
+    return res.status(401).send("Only logged in users can shorten URLs. Please Login or Register.");
   }
 
   const newLongURL = req.body.longURL;
@@ -274,8 +280,8 @@ app.post('/urls', (req, res) => {
   urlDatabase[newShortURL] = {
     longURL: newLongURL,
     userId: userId
-  }
- console.log('urlDatabase: ', urlDatabase);
+  };
+  //console.log('urlDatabase: ', urlDatabase); //check if new url was added to db
 
   // Use route to view the new url you made!
   res.redirect(`/urls/${newShortURL}`);
@@ -283,14 +289,14 @@ app.post('/urls', (req, res) => {
 });
 
 
-//edit 
+//edit
 app.post('/urls/:id/', (req, res) => {
   
   const userId = req.session.user_id;
   const userURLs = urlsForUser(userId, urlDatabase);
   const shortURL = req.params.id;
 
-    //if id does not exist
+  //if id does not exist
   if (!urlDatabase[shortURL]) {
     return res.status(404).send('No url with provided id in our database.');
 
@@ -319,7 +325,7 @@ app.post('/urls/:id/delete', (req, res) => {
   const userURLs = urlsForUser(userId, urlDatabase);
   const shortURL = req.params.id;
 
-    //if id does not exist
+  //if id does not exist
   if (!urlDatabase[shortURL]) {
     return res.status(404).send('No url with provided id in our database.');
 
@@ -332,13 +338,13 @@ app.post('/urls/:id/delete', (req, res) => {
     return res.status(401).send("Access denied. This URL belongs to another user.");
 
   } else {
-  const urlID = req.params.id;
+    const urlID = req.params.id;
 
-  //remove url from database object
-  delete urlDatabase[urlID];
+    //remove url from database object
+    delete urlDatabase[urlID];
 
-  // redirect to urls_index ('/urls'), otherwise it will keep loading and nothing seems to happen
-  return res.redirect('/urls');
+    // redirect to urls_index ('/urls'), otherwise it will keep loading and nothing seems to happen
+    return res.redirect('/urls');
   }
 });
 
