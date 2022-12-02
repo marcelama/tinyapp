@@ -1,60 +1,72 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//DEPENDECIES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const express = require('express');
-const bcrypt = require("bcryptjs");
+const morgan = require('morgan');
+const bcrypt = require('bcryptjs');
 const cookieSession = require('cookie-session');
 
 const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
 
-const app = express();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//CONFIGURATION
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const PORT = 8080; //default port 8080
+const app = express();
 
 //configure view engine
 app.set('view engine', 'ejs');
 
 
-////////DATABASE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//DATABASE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const urlDatabase = {
-  // b2xVn2: {
-  //   longURL: "http://www.lighthouselabs.ca",
-  //   userID: "userRandomID"
-  // },
-  // sm5xK9: {
-  //   longURL: "http://www.google.com",
-  //   userID: "user2RandomID"
-  // },
+  b2xVn2: {
+    longURL: "http://www.lighthouselabs.ca",
+    userId: "userRandomID"
+  },
+  sm5xK9: {
+    longURL: "http://www.google.com",
+    userId: "user2RandomID"
+  },
 };
 
 const users = {
-  // userRandomID: {
-  //   id: "userRandomID",
-  //   email: "user@example.com",
-  //   password: "funky1",
-  // },
-  // user2RandomID: {
-  //   id: "user2RandomID",
-  //   email: "user2@example.com",
-  //   password: "funky2",
-  // },
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: '$2a$10$p6Ha7DPYIRsaoD865sqN3uxRec8eacNPclyrOJ/XeN1JGTyKC4BTK',
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: '$2a$10$btIfhmVUd0qjMvpdzH6Flea1HzBj9fmFlwHP0glKkt/wQkZVbULVW',
+  },
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//MIDDLEWARE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-////////MIDDLEWARE
-
+app.use(morgan('dev'));
 
 //body-parser middleware (Must come before the route, as  will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body)
 app.use(express.urlencoded({ extended: true }));
-
 
 //cookie session
 app.use(cookieSession({
   name: 'session',
   keys: ['umsegredosecreto'],
-  // cookie Options
   maxAge: 24 * 60 * 60 * 1000 // expiry 24 hours
 }))
 
-
-////////GET
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//GET
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get('/', (req, res) => {
   res.send('Hello');
@@ -73,8 +85,9 @@ app.get('/hello', (req, res) => {
 app.get('/register', (req, res) => {
   // retrieve the user's cookie
   const userId = req.session.user_id;
+
   // check if the user is logged in
-  if (userId) {
+  if (!userId) {
   return res.redirect('/urls');
   }
   const templateVars = { 
@@ -145,7 +158,7 @@ app.get('/urls/:id', (req, res) => {
   } // check if the user is logged in
   if (!userId) {
   return res.status(401).send("Access denied. Please Login or Register.");
-  } if (userId !== urlDatabase[shortURL].userID) {
+  } if (userId !== urlDatabase[shortURL].userId) {
     return res.status(401).send("Access denied. This URL belongs to another user.");
   }
   
@@ -172,7 +185,9 @@ app.get('/u/:id', (req, res) => {
 
 
 
-////////POST
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//POST
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //register new user and store in user database
@@ -202,6 +217,7 @@ app.post('/register', (req, res) => {
 
   // add new user id cookie
   req.session.user_id = id;
+  //console.log('cookie id 1', req.session.user_id);///HERE 1 !!!!
   
   res.redirect('/urls');
   }
@@ -218,14 +234,13 @@ app.post('/register', (req, res) => {
   const foundUser = getUserByEmail(email, users);
 
   if (!foundUser) {
-    res.status(403);
-    res.send('Email cannot be found. Please register.');
+    res.status(404).send('Email cannot be found. Please register.');
   } else if (!bcrypt.compareSync(password, foundUser.password)) {
-      res.status(403);
-      res.send('Password does not match with the email addess provided.');
+      res.status(403).send('Password does not match with the email addess provided.');
     } else {
   // set the cookie
   req.session.user_id = foundUser.id;
+  //console.log('cookie id 2', req.session.user_id); ///HERE 2!!!!
   res.redirect('/urls');
   }
 });
@@ -260,7 +275,7 @@ app.post('/urls', (req, res) => {
   // Add new url to DB with generated random string
   urlDatabase[newShortURL] = {
     longURL: newLongURL,
-    userID: userId
+    userId: userId
   }
  console.log('urlDatabase: ', urlDatabase);
 
@@ -331,7 +346,9 @@ app.post('/urls/:id/delete', (req, res) => {
 
 
 
-////////Server Listening...
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//SERVER LISTENING...
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);

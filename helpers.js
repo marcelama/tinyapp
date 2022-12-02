@@ -7,10 +7,10 @@ const generateRandomString = function() {
 };
 
 //returns the URLs where the userID is equal to the id of the currently logged-in user
-const urlsForUser = function(id, urlDatabase) {
+const urlsForUser = function(userId, urlDatabase) {
   const userURLs = {};
   for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
+    if (urlDatabase[shortURL].userId === userId) {
       userURLs[shortURL] = urlDatabase[shortURL];
     }
   }
