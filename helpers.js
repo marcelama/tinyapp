@@ -1,15 +1,32 @@
+////////////////////////////////////////////////////////////////
+////Helpers functions
+////////////////////////////////////////////////////////////////
+
+const generateRandomString = function() {
+  return Math.random().toString(36).substr(2, 6);
+};
+
+//returns the URLs where the userID is equal to the id of the currently logged-in user
+const urlsForUser = function(id, urlDatabase) {
+  const userURLs = {};
+  for (const shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      userURLs[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userURLs;
+}
+
 // check if the email submitted already exists
 const getUserByEmail = function(email, users) {
-  let foundUser = null;
   for (const userId in users) {
     const user = users[userId];
     if (user.email === email) {
-      foundUser = user;
-      //console.log(foundUser) // { id: 'user2RandomID', email: 'user2@example.com', password: 'dishwasher-funk'}
-      return foundUser;
+      //console.log(user) // { id: 'user2RandomID', email: 'user2@example.com', password: 'dishwasher-funk'}
+      return user;
     }
   }
   return undefined;
 };
 
-module.exports = { getUserByEmail };
+module.exports = { getUserByEmail, generateRandomString, urlsForUser };
