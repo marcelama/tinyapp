@@ -87,7 +87,7 @@ app.get('/register', (req, res) => {
   const userId = req.session.user_id;
 
   // check if the user is logged in
-  if (!userId) {
+  if (userId) {
   return res.redirect('/urls');
   }
   const templateVars = { 
@@ -200,11 +200,9 @@ app.post('/register', (req, res) => {
   //console.log('hashedPassword', hashedPassword);
   //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
   if (req.body.email === '' || req.body.password === '') {
-    res.status(400);
-    res.send('Valid mail and password required');
+    res.status(400).send('Valid mail and password required');
   } else if (getUserByEmail(email, users)) {
-    res.status(400);
-    res.send('Cannot register with an email address that has already been used.') 
+    res.status(400).send('Cannot register with an email address that has already been used.') 
   } else {
   // create a new user object
   const user = {
@@ -239,7 +237,7 @@ app.post('/register', (req, res) => {
       res.status(403).send('Password does not match with the email addess provided.');
     } else {
   // set the cookie
-  req.session.user_id = foundUser.id;
+  req.session.user_id = foundUser.id; 
   //console.log('cookie id 2', req.session.user_id); ///HERE 2!!!!
   res.redirect('/urls');
   }
@@ -298,7 +296,7 @@ app.post('/urls/:id/', (req, res) => {
 
   //if the user is not logged in
   } if (!userId) {
-    return res.status(401).send("Access denied. Please Login or Register.");
+    return res.status(401).send("Access denied. Please Login.");
 
   //if the user does not own the URL
   } if (!Object.keys(userURLs).includes(shortURL)) {

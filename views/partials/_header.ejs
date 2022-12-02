@@ -22,9 +22,8 @@
     </div>
     <% if(!user) {%>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-          <a class="nav-item nav-link" href="/login">Login</a>
-          <a class="nav-item nav-link" href="/register">Register</a>
+        <a class="btn btn-primary" style="margin: .1em" href="/login">Login</a>
+        <a class="btn btn-primary" style="margin: .5em" href="/register">Register</a>
         </div>
       </div>
     <%} else {%>
@@ -32,7 +31,8 @@
         <form method="POST" action="/logout" class="form-inline">
           <div class="form-group form-inline">
           <label>Logged in as: <%= user.email %></label>
-          <input type="submit" value="Logout">
+          <button type="submit" class="btn btn-outline-dark" style="margin: 1em">Logout</button>
+        </form>
       </div>
      <%} %>
   </nav>
