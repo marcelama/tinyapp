@@ -4,8 +4,12 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["screenshot description"](#)
-!["screenshot description"](#)
+!["Screenshot of the Login Page"](https://github.com/marcelama/tinyapp/blob/main/docs/TinyApp_login.png?raw=true)
+!["Screenshot of the Register Page"](https://github.com/marcelama/tinyapp/blob/main/docs/TinyApp_register.png?raw=true)
+!["Screenshot of the URLs Page"](https://github.com/marcelama/tinyapp/blob/main/docs/TinyApp_urls.png?raw=true)
+!["Screenshot of the URLs :ID Page"](https://github.com/marcelama/tinyapp/blob/main/docs/TinyApp_urls_id.png?raw=true)
+!["Screenshot of the New URL Page"](https://github.com/marcelama/tinyapp/blob/main/docs/TinyApp_urls_new.png?raw=true)
+
 
 ## Dependencies
 
