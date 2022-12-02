@@ -15,14 +15,13 @@ const urlsForUser = function(userId, urlDatabase) {
     }
   }
   return userURLs;
-}
+};
 
 // check if the email submitted already exists
 const getUserByEmail = function(email, users) {
   for (const userId in users) {
     const user = users[userId];
     if (user.email === email) {
-      //console.log(user) // { id: 'user2RandomID', email: 'user2@example.com', password: 'dishwasher-funk'}
       return user;
     }
   }
