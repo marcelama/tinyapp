@@ -122,7 +122,7 @@ app.get('/login', (req, res) => {
 app.get('/urls', (req, res) => {
   // retrieve the user's cookie
   const userId = req.session.user_id;
-  //console.log(userId); //userRandomID
+
   // check if the user is logged in
   if (!userId) {
     return res.status(401).send("Access denied. Please Login or Register.");
@@ -203,8 +203,7 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  //console.log('hashedPassword', hashedPassword);
-  //console.log(req.body); //{ email: 'marcela.ang@gmail.com', password: '1234' }
+  
   if (req.body.email === '' || req.body.password === '') {
     res.status(400).send('Valid mail and password required');
   } else if (getUserByEmail(email, users)) {
@@ -221,17 +220,13 @@ app.post('/register', (req, res) => {
 
     // add new user id cookie
     req.session.user_id = id;
-    //console.log('cookie id 1', req.session.user_id);///HERE 1 !!!!
-  
     res.redirect('/urls');
   }
-  //console.log(users); //confirm new user was added to users object
 });
 
 
 //login
 app.post('/login', (req, res) => {
-  //console.log('login req body:', req.body); // { email: 'marcela.ang@gmail.com', password: '123456' }
 
   const email = req.body.email;
   const password = req.body.password;
@@ -244,7 +239,6 @@ app.post('/login', (req, res) => {
   } else {
   // set the cookie
     req.session.user_id = foundUser.id;
-    //console.log('cookie id 2', req.session.user_id); ///HERE 2!!!!
     res.redirect('/urls');
   }
 });
@@ -252,7 +246,6 @@ app.post('/login', (req, res) => {
 
 //logout
 app.post('/logout', (req, res) => {
-  //console.log('req body:', req.body);
 
   req.session = null;
 
@@ -262,7 +255,6 @@ app.post('/logout', (req, res) => {
 
 //new url form - route to Receive the Form Submission:
 app.post('/urls', (req, res) => {
-  //console.log('req.body: ', req.body); // Log the POST request body to the console { longURL: 'www.ikea.ca' }
   // retrieve the user's cookie
   const userId = req.session.user_id;
   // check if the user is logged in
@@ -271,21 +263,16 @@ app.post('/urls', (req, res) => {
   }
 
   const newLongURL = req.body.longURL;
-  //console.log('newLongURL: ', newLongURL);
 
   const newShortURL = generateRandomString();
-  //console.log('newShortURL: ', newShortURL);
 
   // Add new url to DB with generated random string
   urlDatabase[newShortURL] = {
     longURL: newLongURL,
     userId: userId
   };
-  //console.log('urlDatabase: ', urlDatabase); //check if new url was added to db
-
   // Use route to view the new url you made!
   res.redirect(`/urls/${newShortURL}`);
-  
 });
 
 
